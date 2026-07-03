@@ -4,6 +4,7 @@ import { api, clearToken, getToken } from '@/lib/api';
 
 const NAV = [
   { href: '/', label: '📋 今日待办' },
+  { href: '/inbox/', label: '📨 收件箱' },
   { href: '/campaigns/', label: '🚀 开发任务' },
   { href: '/brandkit/', label: '🧰 品牌资产库' },
   { href: '/mailboxes/', label: '📮 发信邮箱' },

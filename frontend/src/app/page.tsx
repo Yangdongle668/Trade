@@ -9,16 +9,24 @@ interface SendJob {
   id: string; step_no: number; scheduled_at: string; subject: string; body_text: string;
   company_name: string; domain: string; contact_name: string; fact_urls: string[];
 }
+interface HotThread {
+  id: string; company_name: string; contact_name: string; last_snippet: string;
+  classification: string; lead_status: string;
+}
 
 export default function TodayPage() {
   const [me, setMe] = useState<Me | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [pending, setPending] = useState<SendJob[]>([]);
+  const [hot, setHot] = useState<HotThread[]>([]);
   const [editing, setEditing] = useState<{ subject: string; body: string } | null>(null);
 
   const load = useCallback(() => {
     api<Campaign[]>('/api/campaigns').then(setCampaigns).catch(() => {});
     api<SendJob[]>('/api/sendjobs/pending').then(setPending).catch(() => {});
+    api<HotThread[]>('/api/inbox')
+      .then((ts) => setHot(ts.filter((t) => t.lead_status === 'hot')))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -55,9 +63,25 @@ export default function TodayPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div style={{ ...card, borderLeft: '3px solid var(--hot)' }}>
           <b>🔥 热线索</b>
-          <p style={{ color: 'var(--muted)', margin: '6px 0 0' }}>
-            暂无——客户回复后会第一时间出现在这里（M3 交付回复处理）。
-          </p>
+          <span style={{ color: 'var(--muted)', fontSize: 12 }}>（{hot.length} 条待处理）</span>
+          {hot.length === 0 && (
+            <p style={{ color: 'var(--muted)', margin: '6px 0 0' }}>
+              暂无——客户回复后会第一时间出现在这里。
+            </p>
+          )}
+          {hot.map((t) => (
+            <div key={t.id} style={{ margin: '10px 0 0', padding: '10px 14px',
+                                     background: 'var(--ground)', borderRadius: 8 }}>
+              <b>{t.company_name}</b>
+              <span style={{ color: 'var(--muted)', fontSize: 12 }}> · {t.contact_name}</span>
+              <div style={{ color: 'var(--muted)', fontSize: 13, margin: '4px 0 8px' }}>
+                “{t.last_snippet}”
+              </div>
+              <a href="/inbox/" style={{ color: 'var(--accent)', fontSize: 13 }}>
+                去处理（AI 已可草拟回复）→
+              </a>
+            </div>
+          ))}
         </div>
 
         <div style={card}>
