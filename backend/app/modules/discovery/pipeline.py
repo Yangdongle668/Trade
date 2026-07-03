@@ -52,8 +52,12 @@ def run_campaign_discovery(db: Session, campaign_id: uuid.UUID) -> dict:
         stats["candidates"] += len(candidates)
 
         for cand in candidates:
+            if not cand.domain and cand.name:
+                # CH 等注册库候选无官网：按公司名搜索回填域名
+                from app.modules.discovery.adapters.google_pse import find_domain_by_name
+                cand.domain = find_domain_by_name(cand.name, cand.country or "US") or ""
             if not cand.domain:
-                continue  # CH 等无域名候选：M1 后期补"按公司名搜官网"回填
+                continue
             company = db.execute(
                 select(Company).where(Company.tenant_id == tenant_id,
                                       Company.domain == cand.domain)
@@ -96,6 +100,18 @@ def run_campaign_discovery(db: Session, campaign_id: uuid.UUID) -> dict:
             stats["scored"] += 1
         audit.record(db, tenant_id, "lead", lead.id, "lead.scored",
                      {"score": lead.score, "reason": lead.score_reason})
+
+        # contacts + verify 阶段：找到可发邮箱 → ready，否则 incomplete 待重试
+        if lead.status == "scored":
+            from app.modules.contact.service import process_lead_contacts
+
+            sendable = process_lead_contacts(db, tenant_id, company.id, company.domain,
+                                             outcome.contacts_hint)
+            lead.status = "ready" if sendable else "incomplete"
+            if sendable:
+                stats["ready"] += 1
+            audit.record(db, tenant_id, "lead", lead.id,
+                         f"lead.{'ready' if sendable else 'incomplete'}", {})
         db.commit()
     return stats
 

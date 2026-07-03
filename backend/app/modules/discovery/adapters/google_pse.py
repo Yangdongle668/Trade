@@ -26,6 +26,31 @@ def build_queries(icp: dict) -> list[str]:
     return queries
 
 
+def find_domain_by_name(company_name: str, country: str = "US") -> str | None:
+    """按公司名搜官网（CH 等无域名候选的回填，架构 §5.1 dedupe 前置）。
+    取首个非平台域结果；PSE 未配置或无结果 → None。"""
+    s = get_settings()
+    if not (s.google_pse_api_key and s.google_pse_cx):
+        return None
+    try:
+        resp = httpx.get(
+            "https://www.googleapis.com/customsearch/v1",
+            params={"key": s.google_pse_api_key, "cx": s.google_pse_cx,
+                    "q": f'"{company_name}" official website',
+                    "gl": COUNTRY_GL.get(country, "us"), "num": 5},
+            timeout=20,
+        )
+        resp.raise_for_status()
+    except httpx.HTTPError as e:
+        log.warning("pse.backfill_error", name=company_name, error=str(e))
+        return None
+    for item in resp.json().get("items", []):
+        domain = normalize_domain(item.get("link", ""))
+        if domain:
+            return domain
+    return None
+
+
 class GooglePSEAdapter(DataSourceAdapter):
     name = "pse"
 

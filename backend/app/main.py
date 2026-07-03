@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from app.core.logging import setup_logging
 from app.modules.brandkit.router import router as brandkit_router
 from app.modules.campaign.router import router as campaign_router
+from app.modules.discovery.router import router as leads_router
 from app.modules.identity.router import router as auth_router
 
 
@@ -16,6 +17,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(brandkit_router)
     app.include_router(campaign_router)
+    app.include_router(leads_router)
 
     @app.get("/api/health", tags=["ops"])
     def health() -> dict:
