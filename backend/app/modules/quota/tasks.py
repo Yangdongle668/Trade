@@ -1,7 +1,12 @@
 from app.celery_app import celery
+from app.core.db import SessionLocal
 
 
 @celery.task(name="app.modules.quota.tasks.daily_reset")
-def daily_reset() -> None:
-    """日配额按 period 自然切换，无需清零；此任务做健康巡检占位（M2 扩展：预热爬坡推进）。"""
-    return None
+def daily_reset() -> int:
+    """日配额按 period 自然切换；此处推进发信身份预热爬坡（架构 §6.3）。"""
+    from app.modules.mailbox.service import advance_warmup
+    with SessionLocal() as db:
+        advanced = advance_warmup(db)
+        db.commit()
+    return advanced

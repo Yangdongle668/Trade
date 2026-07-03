@@ -13,14 +13,15 @@ class QuotaExceeded(Exception):
 
 def _period(metric: str) -> str:
     now = datetime.now(timezone.utc)
-    # 数据源免费额度按日记账（架构 §5.2），业务配额按月
-    return now.strftime("%Y-%m-%d") if metric.endswith("_queries") else now.strftime("%Y-%m")
+    # 数据源免费额度与发送量按日记账（架构 §5.2/§6.3），业务配额按月
+    daily = metric.endswith("_queries") or metric.startswith("send:")
+    return now.strftime("%Y-%m-%d") if daily else now.strftime("%Y-%m")
 
 
 def check_and_increment(db: Session, tenant_id: uuid.UUID, metric: str, amount: int = 1,
-                        limit: int | None = None) -> None:
+                        limit: int | None = None, period: str | None = None) -> None:
     limit = limit if limit is not None else FREE_PLAN_LIMITS.get(metric)
-    period = _period(metric)
+    period = period or _period(metric)
     row = db.execute(
         select(UsageCounter).where(
             UsageCounter.tenant_id == tenant_id,

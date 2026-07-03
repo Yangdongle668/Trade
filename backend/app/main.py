@@ -5,6 +5,9 @@ from app.modules.brandkit.router import router as brandkit_router
 from app.modules.campaign.router import router as campaign_router
 from app.modules.discovery.router import router as leads_router
 from app.modules.identity.router import router as auth_router
+from app.modules.mailbox.router import router as mailbox_router
+from app.modules.sequence.router import enroll_router, router as sendjobs_router
+from app.modules.triage.router import router as public_router
 
 
 def create_app() -> FastAPI:
@@ -18,6 +21,10 @@ def create_app() -> FastAPI:
     app.include_router(brandkit_router)
     app.include_router(campaign_router)
     app.include_router(leads_router)
+    app.include_router(mailbox_router)
+    app.include_router(sendjobs_router)
+    app.include_router(enroll_router)
+    app.include_router(public_router)
 
     @app.get("/api/health", tags=["ops"])
     def health() -> dict:

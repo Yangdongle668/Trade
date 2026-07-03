@@ -147,6 +147,17 @@ export default function CampaignsPage() {
               {' · '}{AUTO_LABEL[c.automation_level]}
             </div>
             <a href={`/leads/?campaign=${c.id}`} style={{ color: 'var(--accent)' }}>查看线索 →</a>
+            {c.status === 'dry_run' && (
+              <button style={{ ...btn, marginLeft: 12, padding: '3px 10px', fontSize: 12 }}
+                      onClick={async () => {
+                        const r = await api<{ enrolled: number }>(
+                          `/api/campaigns/${c.id}/enroll-ready`, { method: 'POST' });
+                        alert(`已将 ${r.enrolled} 条就绪线索送入触达序列，任务转为运行中`);
+                        load();
+                      }}>
+                ✅ 校准完成，正式启动触达
+              </button>
+            )}
           </div>
         ))}
       </div>

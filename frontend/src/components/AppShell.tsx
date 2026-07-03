@@ -6,6 +6,7 @@ const NAV = [
   { href: '/', label: '📋 今日待办' },
   { href: '/campaigns/', label: '🚀 开发任务' },
   { href: '/brandkit/', label: '🧰 品牌资产库' },
+  { href: '/mailboxes/', label: '📮 发信邮箱' },
 ];
 
 interface Me { display_name: string }

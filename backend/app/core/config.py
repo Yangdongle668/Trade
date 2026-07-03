@@ -19,6 +19,13 @@ class Settings(BaseSettings):
 
     reacher_base_url: str = ""
 
+    # 对外基址（退订链接等）与 OAuth 应用凭据（Gmail / Microsoft Graph 通道）
+    app_base_url: str = "http://localhost:8000"
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    ms_client_id: str = ""
+    ms_client_secret: str = ""
+
     # LLM 平台代付模式；BYOK 密钥存库内加密，见 ai_gateway
     anthropic_api_key: str = ""
     llm_strong_model: str = "claude-sonnet-5"
