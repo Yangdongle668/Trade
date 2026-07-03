@@ -1,0 +1,33 @@
+/* 设计 token 与 docs/design/prototype.html 对齐；正式 UI Kit 落地时替换为 Tailwind 主题 */
+:root {
+  --ground: #f4f6f5;
+  --panel: #ffffff;
+  --ink: #1e2a32;
+  --muted: #5c6b74;
+  --line: #dfe5e3;
+  --accent: #0e6e8c;
+  --accent-ink: #ffffff;
+  --hot: #c2451f;
+  --good: #2e7d52;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #141a1e;
+    --panel: #1c2429;
+    --ink: #e3e9eb;
+    --muted: #9aaab2;
+    --line: #2b363d;
+    --accent: #5baac6;
+    --accent-ink: #0f1a20;
+    --hot: #e0764f;
+    --good: #5cb98a;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 14px/1.65 -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
