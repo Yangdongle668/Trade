@@ -1,0 +1,696 @@
+<title>AI 客户开发助手 · 交互原型</title>
+<style>
+  :root{
+    --ground:#F4F6F5; --panel:#FFFFFF; --panel-2:#EDF1F0;
+    --ink:#1E2A32; --muted:#5C6B74; --faint:#8A98A0; --line:#DFE5E3;
+    --accent:#0E6E8C; --accent-ink:#FFFFFF; --accent-soft:#E3EEF2;
+    --hot:#C2451F; --hot-soft:#F7E7E0;
+    --good:#2E7D52; --good-soft:#E2F0E8;
+    --warn:#A97614; --warn-soft:#F6EDDA;
+    --bad:#B3402F;  --bad-soft:#F5E3E0;
+    --shadow:0 1px 2px rgba(30,42,50,.06),0 4px 14px rgba(30,42,50,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --ground:#141A1E; --panel:#1C2429; --panel-2:#222C32;
+      --ink:#E3E9EB; --muted:#9AAAB2; --faint:#6E7E86; --line:#2B363D;
+      --accent:#5BAAC6; --accent-ink:#0F1A20; --accent-soft:#1E333D;
+      --hot:#E0764F; --hot-soft:#3A241B;
+      --good:#5CB98A; --good-soft:#1E3329;
+      --warn:#D4A24A; --warn-soft:#38301C;
+      --bad:#D97663;  --bad-soft:#3A211D;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 4px 14px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#141A1E; --panel:#1C2429; --panel-2:#222C32;
+    --ink:#E3E9EB; --muted:#9AAAB2; --faint:#6E7E86; --line:#2B363D;
+    --accent:#5BAAC6; --accent-ink:#0F1A20; --accent-soft:#1E333D;
+    --hot:#E0764F; --hot-soft:#3A241B;
+    --good:#5CB98A; --good-soft:#1E3329;
+    --warn:#D4A24A; --warn-soft:#38301C;
+    --bad:#D97663;  --bad-soft:#3A211D;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 4px 14px rgba(0,0,0,.25);
+  }
+  :root[data-theme="light"]{
+    --ground:#F4F6F5; --panel:#FFFFFF; --panel-2:#EDF1F0;
+    --ink:#1E2A32; --muted:#5C6B74; --faint:#8A98A0; --line:#DFE5E3;
+    --accent:#0E6E8C; --accent-ink:#FFFFFF; --accent-soft:#E3EEF2;
+    --hot:#C2451F; --hot-soft:#F7E7E0;
+    --good:#2E7D52; --good-soft:#E2F0E8;
+    --warn:#A97614; --warn-soft:#F6EDDA;
+    --bad:#B3402F;  --bad-soft:#F5E3E0;
+    --shadow:0 1px 2px rgba(30,42,50,.06),0 4px 14px rgba(30,42,50,.05);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--ground); color:var(--ink);
+    font:14px/1.65 -apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+    font-variant-numeric:tabular-nums;
+  }
+  .app{display:flex;min-height:100vh}
+  /* ---------- 侧栏 ---------- */
+  .side{
+    width:216px;flex:0 0 216px;background:var(--panel);border-right:1px solid var(--line);
+    padding:20px 12px;display:flex;flex-direction:column;gap:2px;position:sticky;top:0;height:100vh;
+  }
+  .logo{display:flex;align-items:center;gap:9px;padding:2px 10px 18px}
+  .logo-mark{width:28px;height:28px;border-radius:8px;background:var(--accent);color:var(--accent-ink);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;letter-spacing:.5px}
+  .logo b{font-size:15px;letter-spacing:.2px}
+  .logo small{display:block;color:var(--faint);font-size:11px;font-weight:400;letter-spacing:.08em}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;
+    color:var(--muted);border:0;background:none;font:inherit;text-align:left;width:100%;
+  }
+  .nav-item:hover{background:var(--panel-2);color:var(--ink)}
+  .nav-item:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .nav-item.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .nav-item .nav-badge{margin-left:auto;background:var(--hot);color:#fff;border-radius:99px;
+    font-size:11px;padding:0 7px;line-height:18px;font-weight:600}
+  .side-foot{margin-top:auto;padding:12px 10px;border-top:1px solid var(--line);font-size:12px;color:var(--faint)}
+  .side-foot .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--good);margin-right:6px}
+  /* ---------- 顶栏与主区 ---------- */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{
+    display:flex;align-items:center;gap:14px;padding:10px 24px;background:var(--panel);
+    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;
+  }
+  .search{flex:0 1 320px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+    padding:6px 12px;color:var(--faint);font-size:13px}
+  .quota{margin-left:auto;display:flex;gap:16px;font-size:12px;color:var(--muted);align-items:center}
+  .quota .bar{width:64px;height:5px;border-radius:99px;background:var(--panel-2);overflow:hidden;display:inline-block;vertical-align:middle;margin-left:6px}
+  .quota .bar i{display:block;height:100%;background:var(--accent)}
+  .avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px}
+  .content{padding:24px;max-width:1180px;width:100%;margin:0 auto}
+  .screen{display:none}
+  .screen.on{display:block}
+  /* ---------- 通用组件 ---------- */
+  h1{font-size:19px;margin:0 0 4px;font-weight:650;text-wrap:balance}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+  .sub b{color:var(--ink)}
+  h2{font-size:13px;font-weight:650;color:var(--muted);margin:26px 0 10px;display:flex;align-items:center;gap:8px}
+  h2 .count{background:var(--panel-2);border-radius:99px;padding:0 8px;font-size:11px;line-height:18px;color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+  .pill{display:inline-block;border-radius:99px;padding:1px 9px;font-size:11.5px;font-weight:600;line-height:19px;white-space:nowrap}
+  .pill.hot{background:var(--hot-soft);color:var(--hot)}
+  .pill.good{background:var(--good-soft);color:var(--good)}
+  .pill.warn{background:var(--warn-soft);color:var(--warn)}
+  .pill.bad{background:var(--bad-soft);color:var(--bad)}
+  .pill.mut{background:var(--panel-2);color:var(--muted)}
+  .pill.acc{background:var(--accent-soft);color:var(--accent)}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;
+    padding:6px 14px;font:inherit;font-size:13px;font-weight:550;cursor:pointer}
+  .btn:hover{background:var(--panel-2)}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .btn.pri:hover{filter:brightness(1.06)}
+  .btn.ghost-hot{border-color:var(--hot);color:var(--hot);background:none}
+  .ai-tag{color:var(--accent);font-size:12px;font-weight:600}
+  .src{color:var(--faint);font-size:11.5px}
+  .en{font-family:Georgia,"Times New Roman",serif;font-size:13.5px}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th{color:var(--faint);font-weight:600;font-size:11.5px;text-align:left;padding:8px 12px;letter-spacing:.04em;border-bottom:1px solid var(--line)}
+  td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  .flag{font-size:15px;margin-right:2px}
+  /* ---------- P1 今日待办 ---------- */
+  .hotcard{padding:16px 18px;display:flex;gap:16px;align-items:flex-start;border-left:3px solid var(--hot)}
+  .hotcard + .hotcard{margin-top:10px}
+  .hotcard .body{flex:1;min-width:0}
+  .hotcard .who{font-weight:650;font-size:14px}
+  .hotcard .meta{color:var(--muted);font-size:12px;margin:1px 0 8px}
+  .quote{background:var(--panel-2);border-radius:8px;padding:9px 12px;color:var(--ink)}
+  .quote mark{background:var(--hot-soft);color:var(--hot);padding:0 2px;border-radius:3px}
+  .hotcard .ops{display:flex;flex-direction:column;gap:8px;flex:0 0 auto}
+  .approve{padding:0;overflow:hidden}
+  .approve-head{display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:1px solid var(--line)}
+  .approve-grid{display:grid;grid-template-columns:1.6fr 1fr}
+  .mail{padding:16px 18px;border-right:1px solid var(--line)}
+  .mail .field{font-size:12px;color:var(--muted);margin-bottom:2px}
+  .mail .field b{color:var(--ink);font-weight:600}
+  .mail .mailbody{margin-top:10px;white-space:pre-line}
+  .why{padding:16px 18px;background:var(--panel-2)}
+  .why h3{font-size:12px;margin:0 0 8px;color:var(--accent);font-weight:650}
+  .why ul{margin:0;padding-left:16px;color:var(--muted);font-size:12.5px}
+  .why li{margin-bottom:7px}
+  .approve-foot{display:flex;gap:10px;padding:12px 18px;border-top:1px solid var(--line);align-items:center}
+  .approve-foot .note{color:var(--faint);font-size:12px;margin-left:auto}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr;gap:10px}
+  .stat{padding:14px 16px}
+  .stat .k{color:var(--muted);font-size:12px}
+  .stat .v{font-size:24px;font-weight:680;letter-spacing:-.02em;margin-top:2px}
+  .stat .d{font-size:11.5px;color:var(--good);margin-top:1px}
+  .stat .d.down{color:var(--muted)}
+  .brief{padding:12px 16px;font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:6px;justify-content:center}
+  .health-line{display:flex;align-items:center;gap:6px}
+  .hdot{width:8px;height:8px;border-radius:50%}
+  .done-banner{margin-top:22px;text-align:center;color:var(--good);background:var(--good-soft);
+    border-radius:10px;padding:11px;font-weight:600;display:none}
+  .done-banner.show{display:block}
+  /* ---------- P2 收件箱 ---------- */
+  .inbox{display:grid;grid-template-columns:280px 1fr 250px;min-height:520px;overflow:hidden}
+  .conv-list{border-right:1px solid var(--line);display:flex;flex-direction:column}
+  .filters{display:flex;flex-wrap:wrap;gap:6px;padding:12px}
+  .chip{border:1px solid var(--line);background:none;color:var(--muted);border-radius:99px;
+    padding:2px 10px;font:inherit;font-size:12px;cursor:pointer}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+  .conv{padding:11px 14px;border-top:1px solid var(--line);cursor:pointer}
+  .conv:hover{background:var(--panel-2)}
+  .conv.on{background:var(--accent-soft)}
+  .conv .c1{display:flex;justify-content:space-between;gap:8px;font-weight:620;font-size:13px}
+  .conv .c1 time{color:var(--faint);font-weight:400;font-size:11.5px}
+  .conv .c2{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .thread{padding:16px 18px;display:flex;flex-direction:column;gap:12px;border-right:1px solid var(--line)}
+  .msg{max-width:88%;border-radius:10px;padding:10px 14px;border:1px solid var(--line)}
+  .msg.out{align-self:flex-start;background:var(--panel-2)}
+  .msg.in{align-self:flex-end;background:var(--accent-soft);border-color:transparent}
+  .msg .m-meta{font-size:11px;color:var(--faint);margin-bottom:4px}
+  .draft{margin-top:auto;border:1.5px dashed var(--accent);border-radius:10px;padding:12px 14px;background:var(--panel)}
+  .draft .d-head{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;color:var(--accent);font-weight:650}
+  .draft .d-ops{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .tone{border:1px solid var(--line);border-radius:99px;background:none;color:var(--muted);padding:2px 10px;font-size:12px;cursor:pointer}
+  .dossier{padding:16px;font-size:12.5px}
+  .dossier h3{font-size:12px;color:var(--muted);margin:0 0 8px;font-weight:650}
+  .dossier .fact{margin-bottom:9px;color:var(--ink)}
+  .kv{display:flex;justify-content:space-between;color:var(--muted);margin-bottom:6px}
+  .kv b{color:var(--ink);font-weight:600}
+  /* ---------- P3 Campaign ---------- */
+  .camp-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .camp{padding:16px 18px}
+  .camp .c-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .camp .c-head b{font-size:14.5px}
+  .funnel-mini{display:flex;gap:4px;align-items:flex-end;height:44px;margin:10px 0 4px}
+  .funnel-mini i{flex:1;background:var(--accent);opacity:.9;border-radius:3px 3px 0 0;display:block}
+  .funnel-mini i:nth-child(n+4){background:var(--hot)}
+  .fl{display:flex;justify-content:space-between;color:var(--faint);font-size:11px}
+  .wizard{padding:0;overflow:hidden;margin-top:14px}
+  .steps{display:flex;border-bottom:1px solid var(--line)}
+  .step{flex:1;padding:12px;text-align:center;font-size:12.5px;color:var(--faint);border-bottom:2px solid transparent}
+  .step.done{color:var(--good)}
+  .step.now{color:var(--accent);font-weight:650;border-bottom-color:var(--accent)}
+  .wiz-body{display:grid;grid-template-columns:1.5fr 1fr}
+  .seq{padding:18px;border-right:1px solid var(--line)}
+  .seq-step{display:flex;gap:12px;margin-bottom:4px}
+  .seq-rail{display:flex;flex-direction:column;align-items:center}
+  .seq-dot{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .seq-line{width:2px;flex:1;background:var(--line);min-height:14px}
+  .seq-card{flex:1;border:1px solid var(--line);border-radius:9px;padding:9px 13px;margin-bottom:10px}
+  .seq-card .s1{display:flex;gap:8px;align-items:center;font-weight:620;font-size:13px}
+  .seq-card .s2{color:var(--muted);font-size:12px;margin-top:2px}
+  .wiz-side{padding:18px;background:var(--panel-2);font-size:12.5px}
+  .wiz-side h3{font-size:12px;margin:0 0 10px;color:var(--muted);font-weight:650}
+  .radio-row{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+  .radio{display:flex;gap:9px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);
+    border-radius:8px;background:var(--panel);cursor:pointer}
+  .radio.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .radio b{font-size:12.5px}
+  .radio small{color:var(--muted);display:block;font-size:11.5px}
+  .wiz-foot{display:flex;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--line)}
+  /* ---------- P4 线索库 ---------- */
+  .score{display:inline-flex;align-items:center;gap:6px;font-weight:650}
+  .score .sbar{width:44px;height:5px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+  .score .sbar i{display:block;height:100%;background:var(--good)}
+  .score.mid .sbar i{background:var(--warn)}
+  .research{background:var(--panel-2);border-radius:0}
+  .research td{padding:14px 18px}
+  .research ul{margin:6px 0 0;padding-left:16px;color:var(--muted);font-size:12.5px}
+  .research li{margin-bottom:5px}
+  .locked{color:var(--faint)}
+  /* ---------- P5 报表 ---------- */
+  .rpt-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:start}
+  .funnel{padding:18px}
+  .frow{display:grid;grid-template-columns:110px 1fr 90px;gap:12px;align-items:center;margin-bottom:12px;font-size:12.5px}
+  .frow .fname{color:var(--muted)}
+  .fbar{height:22px;border-radius:5px;background:var(--accent);opacity:.92;min-width:6px}
+  .frow:nth-child(n+6) .fbar{background:var(--hot)}
+  .frow .fnum{color:var(--ink);font-weight:620}
+  .frow .fnum small{color:var(--faint);font-weight:400;margin-left:5px}
+  .idn{display:flex;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line);font-size:12.5px}
+  .idn:first-of-type{border-top:0}
+  .idn .grow{flex:1}
+  .idn .mail-addr{font-weight:620}
+  .idn .sub2{color:var(--faint);font-size:11.5px}
+  .wbar{width:120px;height:6px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+  .wbar i{display:block;height:100%;background:var(--warn)}
+  /* ---------- P6 设置 ---------- */
+  .dns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+  .dns .card{padding:14px 16px}
+  .dns .name{font-weight:650;letter-spacing:.05em;font-size:12.5px}
+  .dns .desc{color:var(--muted);font-size:12px;margin:4px 0 8px}
+  code{background:var(--panel-2);border-radius:5px;padding:1px 6px;font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .guard{margin-top:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;border-left:3px solid var(--warn)}
+  .guard .g-ico{font-size:16px}
+  @media (max-width:960px){
+    .side{display:none}
+    .inbox{grid-template-columns:1fr}
+    .conv-list,.dossier{display:none}
+    .approve-grid,.wiz-body,.rpt-grid,.camp-grid{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .mail,.seq,.thread{border-right:0}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .screen.on{animation:fade .18s ease}
+    @keyframes fade{from{opacity:.4}to{opacity:1}}
+  }
+</style>
+
+<div class="app">
+  <!-- 侧栏 -->
+  <nav class="side">
+    <div class="logo">
+      <div class="logo-mark">远</div>
+      <div><b>远航开发助手</b><small>OUTREACH&nbsp;COPILOT</small></div>
+    </div>
+    <button class="nav-item on" data-nav="today">📋 今日待办 <span class="nav-badge">5</span></button>
+    <button class="nav-item" data-nav="inbox">📨 收件箱 <span class="nav-badge">3</span></button>
+    <button class="nav-item" data-nav="camp">🚀 开发任务</button>
+    <button class="nav-item" data-nav="leads">🏢 线索库</button>
+    <button class="nav-item" data-nav="rpt">📈 数据报表</button>
+    <button class="nav-item" data-nav="set">⚙️ 设置</button>
+    <div class="side-foot"><span class="dot"></span>发信健康 · 良好<br>套餐：Growth · 5 席位</div>
+  </nav>
+
+  <div class="main">
+    <!-- 顶栏 -->
+    <div class="topbar">
+      <div class="search">🔍 搜索公司 / 联系人 / 邮件…</div>
+      <div class="quota">
+        <span>本月线索 <b>418/1500</b><span class="bar"><i style="width:28%"></i></span></span>
+        <span>发送量 <b>1,236/4,000</b><span class="bar"><i style="width:31%"></i></span></span>
+        <span>🔔</span>
+        <div class="avatar">李W</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ P1 今日待办 ============ -->
+      <section class="screen on" id="scr-today">
+        <h1>早上好，李薇 ☀️</h1>
+        <p class="sub">我昨夜为你新找到 <b>118 家公司</b>，发出 <b>84 封</b>开发信，收到 <b>6 条回复</b>——其中 <b>2 条是热线索</b>，请优先处理。</p>
+
+        <h2>🔥 热线索 <span class="count">2 条待处理</span></h2>
+        <div class="card hotcard">
+          <div class="body">
+            <div class="who">Brightline Distribution Ltd <span class="flag">🇬🇧</span> <span class="pill hot">索要报价</span></div>
+            <div class="meta">James Holloway · Purchasing Manager · 09:42 回复（伦敦时间 02:42）· 来自任务「英国商业照明批发」</div>
+            <div class="quote en">"Hi Wei, this looks interesting. <mark>Could you send over your catalog and price list</mark> for the LED track light series? We're reviewing suppliers for Q4."</div>
+          </div>
+          <div class="ops">
+            <button class="btn pri">用 AI 草稿回复</button>
+            <button class="btn">查看会话</button>
+          </div>
+        </div>
+        <div class="card hotcard">
+          <div class="body">
+            <div class="who">Lumina Supply Co. <span class="flag">🇺🇸</span> <span class="pill hot">询问 MOQ</span></div>
+            <div class="meta">Dana Reyes · Head of Sourcing · 07:15 回复（芝加哥时间 18:15）· 来自任务「北美 LED 轨道灯分销商」</div>
+            <div class="quote en">"What's your <mark>MOQ and lead time</mark> for the 20W adjustable model? Also do you have <mark>ETL certification</mark>?"</div>
+          </div>
+          <div class="ops">
+            <button class="btn pri">用 AI 草稿回复</button>
+            <button class="btn">查看会话</button>
+          </div>
+        </div>
+
+        <h2>✍️ 待审批开发信 <span class="count" id="approve-count">3 封 · 任务「北美 LED 轨道灯分销商」为逐封审批模式</span></h2>
+        <div class="card approve" id="approve-card">
+          <div class="approve-head">
+            <span class="pill acc">✨ AI 草稿 1/3</span>
+            <b>Harbor &amp; Hale Lighting</b> <span class="flag">🇺🇸</span>
+            <span class="src">Portland, OR · 匹配度 91</span>
+          </div>
+          <div class="approve-grid">
+            <div class="mail en">
+              <div class="field">收件人：<b>Megan Cho</b> &lt;m.cho@harborhale.com&gt; · 邮箱置信度 高</div>
+              <div class="field">主题：<b>Track lighting for your new Bend showroom</b></div>
+              <div class="mailbody">Hi Megan,
+
+Congrats on opening the Bend showroom last month — the gallery-style layout in your announcement photos looks great, and track lighting does a lot of the work in spaces like that.
+
+We manufacture adjustable LED track systems (15–30W, ETL-listed) for lighting retailers in the US Northwest; MOQ starts at 200 units with 25-day lead time.
+
+Would it be worth sending over a short line sheet?
+
+Best regards,
+Wei Li</div>
+            </div>
+            <div class="why">
+              <h3>✨ 我为什么这样写</h3>
+              <ul>
+                <li>开场引用其官网新闻「新展厅开业」<span class="src">（harborhale.com/news，6 月 12 日）</span>——真实事实，非模板。</li>
+                <li>卖点只引用品牌资产库中的 ETL 认证与 MOQ 区间，未编造价格。</li>
+                <li>CTA 用低门槛的「line sheet」而非「报价」，首信回复率更高。</li>
+                <li>正文 96 词、0 图片、0 链接，垃圾邮件分值：低。</li>
+              </ul>
+            </div>
+          </div>
+          <div class="approve-foot">
+            <button class="btn pri" id="btn-approve">✓ 通过并排入发送</button>
+            <button class="btn">编辑后通过</button>
+            <button class="btn ghost-hot">✕ 拒绝</button>
+            <span class="note">将于收件人当地时间明早 09:10 投递 · 抽检模式可在任务设置中开启</span>
+          </div>
+        </div>
+        <div class="done-banner" id="done-banner">✅ 已通过，正在加载下一封（2/3）…</div>
+
+        <h2>📊 昨夜战报 <span class="count">7 月 2 日 20:00 – 今 08:00</span></h2>
+        <div class="stats">
+          <div class="card stat"><div class="k">新线索</div><div class="v">118</div><div class="d">高匹配 34 家</div></div>
+          <div class="card stat"><div class="k">已发送</div><div class="v">84</div><div class="d down">按时区错峰投递</div></div>
+          <div class="card stat"><div class="k">打开</div><div class="v">37</div><div class="d">打开率 44%</div></div>
+          <div class="card stat"><div class="k">回复</div><div class="v">6</div><div class="d">回复率 7.1% ↑</div></div>
+          <div class="card brief">
+            <div class="health-line"><span class="hdot" style="background:var(--good)"></span>发信域名 reachout-yh.com · 健康</div>
+            <div class="health-line"><span class="hdot" style="background:var(--warn)"></span>sales2@ 预热中 · 第 9/21 天</div>
+            <div>✨ 一句话总结：英国任务 B 版主题行回复率是 A 版 2.3 倍，建议明日全量切换。<a href="#" style="color:var(--accent)">应用</a></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ P2 收件箱 ============ -->
+      <section class="screen" id="scr-inbox">
+        <h1>收件箱</h1>
+        <p class="sub">所有回复已由 AI 分类，<b>热线索永远置顶</b>。点击分类筛选。</p>
+        <div class="card inbox">
+          <div class="conv-list">
+            <div class="filters">
+              <button class="chip on">全部 12</button>
+              <button class="chip">🔥 感兴趣 3</button>
+              <button class="chip">❓ 有疑问 2</button>
+              <button class="chip">⏰ 以后再说 3</button>
+              <button class="chip">✋ 拒绝 2</button>
+              <button class="chip">🤖 自动回复 2</button>
+            </div>
+            <div class="conv on">
+              <div class="c1">Brightline Distribution <time>09:42</time></div>
+              <div class="c2">🔥 Could you send over your catalog and price…</div>
+            </div>
+            <div class="conv">
+              <div class="c1">Lumina Supply Co. <time>07:15</time></div>
+              <div class="c2">🔥 What's your MOQ and lead time for the 20W…</div>
+            </div>
+            <div class="conv">
+              <div class="c1">Keystone Electric Whsl. <time>昨天</time></div>
+              <div class="c2">⏰ We just finished our sourcing round, try us in Q4…</div>
+            </div>
+            <div class="conv">
+              <div class="c1">Fenwick &amp; Gray Ltd <time>昨天</time></div>
+              <div class="c2">✋ We're happy with our current supplier, thanks.</div>
+            </div>
+            <div class="conv">
+              <div class="c1">Atlas Home Improvement <time>周一</time></div>
+              <div class="c2">🤖 Out of office until July 14. For urgent matters…</div>
+            </div>
+          </div>
+          <div class="thread">
+            <div class="msg out en">
+              <div class="m-meta">我 → James Holloway · 6 月 30 日 · 序列第 2 步</div>
+              Hi James, following up with one thing I should have led with: our track systems are already stocked by two UK commercial lighting wholesalers, and both reordered within 90 days…
+            </div>
+            <div class="msg in en">
+              <div class="m-meta">James Holloway · 今天 09:42 · ✨ 已分类：🔥 索要报价 · 序列已自动停止</div>
+              Hi Wei, this looks interesting. Could you send over your catalog and price list for the LED track light series? We're reviewing suppliers for Q4.
+            </div>
+            <div class="draft">
+              <div class="d-head">✨ AI 回复草稿 · 事实均来自品牌资产库</div>
+              <div class="en">Hi James, glad it caught your eye. I've attached our 2026 track lighting catalog and a price list for the LED track series (FOB, valid 30 days). Happy to send samples of the two best-selling models — would that help your Q4 review?</div>
+              <div class="d-ops">
+                <button class="btn pri">确认发送（附产品册）</button>
+                <button class="btn">编辑</button>
+                <button class="tone">换语气：更简短</button>
+                <button class="tone">更正式</button>
+                <button class="btn">交接 → 导出/推送 CRM</button>
+              </div>
+            </div>
+          </div>
+          <div class="dossier">
+            <h3>公司档案</h3>
+            <div class="kv"><span>国家</span><b>🇬🇧 英国 · Manchester</b></div>
+            <div class="kv"><span>类型</span><b>商业照明批发商</b></div>
+            <div class="kv"><span>规模</span><b>约 40 人</b></div>
+            <div class="kv"><span>匹配度</span><b style="color:var(--good)">93 / 100</b></div>
+            <h3 style="margin-top:14px">✨ 研判要点（含出处）</h3>
+            <div class="fact">官网列有 commercial track &amp; spot 品类 <span class="src">brightline.co.uk/products</span></div>
+            <div class="fact">6 月发布招聘「Category Buyer – Lighting」<span class="src">LinkedIn Jobs</span></div>
+            <div class="fact">服务 200+ 电工承包商客户 <span class="src">官网 About 页</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ P3 开发任务 ============ -->
+      <section class="screen" id="scr-camp">
+        <h1>开发任务</h1>
+        <p class="sub">每个任务 = 一个客户画像 + 一套话术策略 + 一条自动流水线。</p>
+        <div class="camp-grid">
+          <div class="card camp">
+            <div class="c-head"><b>北美 LED 轨道灯分销商</b><span class="pill good">运行中</span><span class="pill mut">逐封审批</span></div>
+            <div class="funnel-mini"><i style="height:100%"></i><i style="height:72%"></i><i style="height:54%"></i><i style="height:26%"></i><i style="height:9%"></i></div>
+            <div class="fl"><span>线索 486</span><span>触达 351</span><span>打开 262</span><span>回复 31</span><span>热 7</span></div>
+          </div>
+          <div class="card camp">
+            <div class="c-head"><b>英国商业照明批发</b><span class="pill good">运行中</span><span class="pill acc">抽检 20%</span></div>
+            <div class="funnel-mini"><i style="height:100%"></i><i style="height:66%"></i><i style="height:47%"></i><i style="height:22%"></i><i style="height:7%"></i></div>
+            <div class="fl"><span>线索 312</span><span>触达 205</span><span>打开 147</span><span>回复 22</span><span>热 5</span></div>
+          </div>
+        </div>
+
+        <h2>新建任务 · 四步向导（示例：第 3 步）</h2>
+        <div class="card wizard">
+          <div class="steps">
+            <div class="step done">① 定目标 ✓</div>
+            <div class="step done">② 选产品 ✓</div>
+            <div class="step now">③ 定策略</div>
+            <div class="step">④ 预跑确认</div>
+          </div>
+          <div class="wiz-body">
+            <div class="seq">
+              <div class="seq-step">
+                <div class="seq-rail"><div class="seq-dot">D0</div><div class="seq-line"></div></div>
+                <div class="seq-card"><div class="s1">首封开发信 <span class="pill acc">A/B：2 版主题行</span></div>
+                <div class="s2">✨ 个性化开场（引用对方官网/新闻）+ 一个低门槛 CTA（line sheet）</div></div>
+              </div>
+              <div class="seq-step">
+                <div class="seq-rail"><div class="seq-dot">D3</div><div class="seq-line"></div></div>
+                <div class="seq-card"><div class="s1">跟进 · 补充证据</div>
+                <div class="s2">分享同类客户案例与复购数据，不重复首信内容</div></div>
+              </div>
+              <div class="seq-step">
+                <div class="seq-rail"><div class="seq-dot">D8</div><div class="seq-line"></div></div>
+                <div class="seq-card"><div class="s1">跟进 · 换角度</div>
+                <div class="s2">行业洞察切入（如 Q4 采购季备货窗口），提供样品选项</div></div>
+              </div>
+              <div class="seq-step">
+                <div class="seq-rail"><div class="seq-dot">D15</div></div>
+                <div class="seq-card"><div class="s1">礼貌收尾</div>
+                <div class="s2">「保持联系」式收尾并归入 90 天冷却池 · 任一回复即全序列停止</div></div>
+              </div>
+            </div>
+            <div class="wiz-side">
+              <h3>自动化级别</h3>
+              <div class="radio-row">
+                <label class="radio"><input type="radio" name="auto"> <span><b>逐封审批</b><small>每封信发送前需我确认（建议新任务前 2 周）</small></span></label>
+                <label class="radio on"><input type="radio" name="auto" checked> <span><b>抽检模式 · 20%</b><small>AI 自主发送，随机 20% 进入我的审批流</small></span></label>
+                <label class="radio"><input type="radio" name="auto"> <span><b>全自动</b><small>仅热线索与异常需要我处理</small></span></label>
+              </div>
+              <h3>发送护栏（系统托管）</h3>
+              <div class="kv"><span>投递窗口</span><b>收件人时区 · 工作日 08:30–11:30</b></div>
+              <div class="kv"><span>单邮箱日限</span><b>≤50 封（预热邮箱 ≤20）</b></div>
+              <div class="kv"><span>同联系人全局频控</span><b>30 天 1 个序列</b></div>
+            </div>
+          </div>
+          <div class="wiz-foot">
+            <button class="btn">← 上一步</button>
+            <button class="btn pri">下一步：预跑确认（20 条样本线索 + 3 封样信）→</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ P4 线索库 ============ -->
+      <section class="screen" id="scr-leads">
+        <h1>线索库</h1>
+        <p class="sub">全团队去重：同一公司同时只能被一名成员触达。每个评分都<b>可展开查看依据</b>。</p>
+        <div class="card" style="overflow-x:auto">
+          <table>
+            <thead><tr><th>公司</th><th>匹配度</th><th>国家</th><th>状态</th><th>联系人</th><th>归属</th><th>最近动态</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><b>Brightline Distribution Ltd</b><div class="src">brightline.co.uk · 商业照明批发</div></td>
+                <td><span class="score">93 <span class="sbar"><i style="width:93%"></i></span></span></td>
+                <td>🇬🇧 UK</td><td><span class="pill hot">热线索</span></td>
+                <td>James Holloway<div class="src">采购经理 · 邮箱置信度 高</div></td>
+                <td>李薇</td><td>今天 09:42 索要报价</td>
+              </tr>
+              <tr style="cursor:pointer" title="点击收起研判档案">
+                <td><b>Harbor &amp; Hale Lighting</b><div class="src">harborhale.com · 照明零售</div></td>
+                <td><span class="score">91 <span class="sbar"><i style="width:91%"></i></span></span></td>
+                <td>🇺🇸 US</td><td><span class="pill acc">触达中 1/4</span></td>
+                <td>Megan Cho<div class="src">Co-founder · 邮箱置信度 高</div></td>
+                <td>李薇</td><td>首信待审批</td>
+              </tr>
+              <tr class="research">
+                <td colspan="7">
+                  <b>✨ 研判档案 — 为什么是 91 分</b>
+                  <ul>
+                    <li>官网主营导轨射灯与商业照明，与我方产品线直接重合 <span class="src">harborhale.com/products</span></li>
+                    <li>上月在俄勒冈 Bend 新开第 3 家展厅，处于扩张期 <span class="src">harborhale.com/news · 6 月 12 日</span></li>
+                    <li>Instagram 近 30 天 4 条商用项目案例，面向承包商客户 <span class="src">@harborhale</span></li>
+                    <li>规模约 15–30 人，符合「区域零售/分销商」画像；未发现与竞品的公开合作</li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td><b>Lumina Supply Co.</b><div class="src">luminasupply.com · 电气批发</div></td>
+                <td><span class="score">88 <span class="sbar"><i style="width:88%"></i></span></span></td>
+                <td>🇺🇸 US</td><td><span class="pill hot">热线索</span></td>
+                <td>Dana Reyes<div class="src">Head of Sourcing</div></td>
+                <td>李薇</td><td>今天 07:15 询问 MOQ</td>
+              </tr>
+              <tr>
+                <td><b>Keystone Electric Wholesale</b><div class="src">keystoneew.com</div></td>
+                <td><span class="score mid">74 <span class="sbar"><i style="width:74%"></i></span></span></td>
+                <td>🇺🇸 US</td><td><span class="pill warn">养熟中 · 10 月回访</span></td>
+                <td>T. Brennan<div class="src">Buyer</div></td>
+                <td>李薇</td><td>「Q4 再联系」已自动排程</td>
+              </tr>
+              <tr class="locked">
+                <td><b>Meridian Lighting Group</b><div class="src">meridianlg.com</div></td>
+                <td><span class="score mid">81 <span class="sbar"><i style="width:81%"></i></span></span></td>
+                <td>🇨🇦 CA</td><td><span class="pill mut">🔒 同事跟进中</span></td>
+                <td>—</td><td>张涛</td><td>触达中，撞单保护生效</td>
+              </tr>
+              <tr>
+                <td><b>Fenwick &amp; Gray Ltd</b><div class="src">fenwickgray.co.uk</div></td>
+                <td><span class="score mid">69 <span class="sbar"><i style="width:69%"></i></span></span></td>
+                <td>🇬🇧 UK</td><td><span class="pill bad">已拒绝</span></td>
+                <td>P. Whitmore</td>
+                <td>李薇</td><td>「已有供应商」· 180 天后可再评估</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ P5 数据报表 ============ -->
+      <section class="screen" id="scr-rpt">
+        <h1>数据报表</h1>
+        <p class="sub">本月漏斗与发信健康。<b>送达率是生命线</b>，异常会自动降速并通知你。</p>
+        <div class="rpt-grid">
+          <div class="card funnel">
+            <h3 style="margin:0 0 14px;font-size:13px">开发漏斗 · 6 月 3 日 – 7 月 3 日 · 全部任务</h3>
+            <div class="frow"><span class="fname">线索发现</span><span class="fbar" style="width:100%"></span><span class="fnum">1,240</span></div>
+            <div class="frow"><span class="fname">有效联系人</span><span class="fbar" style="width:69%"></span><span class="fnum">861 <small>69%</small></span></div>
+            <div class="frow"><span class="fname">已触达</span><span class="fbar" style="width:52%"></span><span class="fnum">640 <small>74%</small></span></div>
+            <div class="frow"><span class="fname">打开</span><span class="fbar" style="width:23%"></span><span class="fnum">289 <small>45%</small></span></div>
+            <div class="frow"><span class="fname">回复</span><span class="fbar" style="width:4%"></span><span class="fnum">41 <small>6.4%</small></span></div>
+            <div class="frow"><span class="fname">🔥 热线索</span><span class="fbar" style="width:1.2%"></span><span class="fnum">9 <small>22%</small></span></div>
+            <p class="src" style="margin:10px 0 0">✨ 洞察：打开→回复转化（14%）低于英国任务（21%），主因是北美首信 CTA 偏重；已生成 B 版待你审阅。</p>
+          </div>
+          <div>
+            <div class="card" style="padding:16px 18px;margin-bottom:14px">
+              <h3 style="margin:0 0 10px;font-size:13px">送达健康</h3>
+              <div class="kv"><span>送达率</span><b style="color:var(--good)">94.2%</b></div>
+              <div class="kv"><span>硬退信率</span><b style="color:var(--good)">1.8%（阈值 3%）</b></div>
+              <div class="kv"><span>垃圾箱率（种子探测）</span><b style="color:var(--warn)">6.1%（目标 &lt;10%）</b></div>
+              <div class="kv"><span>投诉率</span><b style="color:var(--good)">0.02%</b></div>
+            </div>
+            <div class="card">
+              <div class="idn">
+                <span class="hdot" style="background:var(--good)"></span>
+                <div class="grow"><div class="mail-addr">wei@reachout-yh.com</div><div class="sub2">日限 50 · 今日已发 41</div></div>
+                <span class="pill good">健康</span>
+              </div>
+              <div class="idn">
+                <span class="hdot" style="background:var(--warn)"></span>
+                <div class="grow"><div class="mail-addr">sales2@reachout-yh.com</div><div class="sub2">预热第 9/21 天 · 日限 20</div></div>
+                <span class="wbar"><i style="width:43%"></i></span>
+              </div>
+              <div class="idn">
+                <span class="hdot" style="background:var(--good)"></span>
+                <div class="grow"><div class="mail-addr">hello@reachout-yh.com</div><div class="sub2">日限 50 · 今日已发 38</div></div>
+                <span class="pill good">健康</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ P6 设置 ============ -->
+      <section class="screen" id="scr-set">
+        <h1>设置 · 邮箱与域名</h1>
+        <p class="sub">群发<b>永远不使用你的公司主域名</b>。独立发信域名 <code>reachout-yh.com</code> 已接入。</p>
+        <div class="dns">
+          <div class="card">
+            <div class="name">SPF <span class="pill good">✓ 已配置</span></div>
+            <div class="desc">声明允许代表你域名发信的服务器</div>
+            <code>v=spf1 include:_spf.yh.io ~all</code>
+          </div>
+          <div class="card">
+            <div class="name">DKIM <span class="pill good">✓ 已配置</span></div>
+            <div class="desc">为每封邮件加数字签名防篡改</div>
+            <code>yh._domainkey · TXT 已验证</code>
+          </div>
+          <div class="card">
+            <div class="name">DMARC <span class="pill bad">✕ 未配置</span></div>
+            <div class="desc">告诉收件方如何处理验证失败的邮件</div>
+            <code>建议：v=DMARC1; p=quarantine</code>
+            <div style="margin-top:8px"><button class="btn pri">查看 DNS 配置指引</button></div>
+          </div>
+        </div>
+        <div class="card guard">
+          <span class="g-ico">🛡️</span>
+          <div>
+            <b>发送护栏（系统托管，Admin 可在护栏内调整）</b>
+            <div class="src" style="margin-top:4px">
+              新邮箱自动预热 21 天，从日发 5 封渐进爬坡至 50 封 · 硬退信率 &gt;3% 自动降速一半并通知 ·
+              投诉率 &gt;0.1% 立即熔断，需人工诊断后恢复 · 退订/投诉者进入租户级压制名单，永不再触达。
+            </div>
+          </div>
+        </div>
+        <h2>合规</h2>
+        <div class="card" style="padding:14px 18px;font-size:12.5px;color:var(--muted)">
+          每封外发邮件自动附：真实公司名与地址落款 · 一键退订链接（CAN-SPAM/CASL）· 数据来源可溯源，支持 GDPR 删除请求（设置 → 合规 → 删除请求）。
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // 侧栏导航切换
+  var navMap={today:'scr-today',inbox:'scr-inbox',camp:'scr-camp',leads:'scr-leads',rpt:'scr-rpt',set:'scr-set'};
+  document.querySelectorAll('.nav-item').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.querySelectorAll('.nav-item').forEach(function(b){b.classList.remove('on')});
+      btn.classList.add('on');
+      document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on')});
+      document.getElementById(navMap[btn.dataset.nav]).classList.add('on');
+      window.scrollTo({top:0});
+    });
+  });
+  // 审批交互示意
+  var approveBtn=document.getElementById('btn-approve');
+  if(approveBtn){approveBtn.addEventListener('click',function(){
+    document.getElementById('approve-card').style.display='none';
+    document.getElementById('done-banner').classList.add('show');
+    document.getElementById('approve-count').textContent='2 封剩余';
+  });}
+  // 收件箱会话选中示意
+  document.querySelectorAll('.conv').forEach(function(c){
+    c.addEventListener('click',function(){
+      document.querySelectorAll('.conv').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on');
+    });
+  });
+  document.querySelectorAll('.chip').forEach(function(c){
+    c.addEventListener('click',function(){
+      document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on')});
+      c.classList.add('on');
+    });
+  });
+</script>
