@@ -12,6 +12,28 @@
 - 数据库：PostgreSQL 16（多租户 tenant_id + RLS）
 - 部署：单 VPS Docker Compose（月成本目标 <$50）
 
+## VPS 一键部署（生产）
+
+```bash
+git clone <本仓库> outreach && cd outreach
+sudo ./deploy.sh          # 自动装 Docker → 生成密钥 → 构建 → 迁移+RLS → 健康检查
+```
+
+首次运行会询问域名（可跳过用 IP）；密钥全部自动生成并写入 `.env`（权限 600）。
+之后补填数据源/LLM Key 到 `.env`，执行 `sudo ./deploy.sh update` 生效。
+
+| 命令 | 作用 |
+|------|------|
+| `sudo ./deploy.sh` | 首次部署（幂等，可重复执行） |
+| `sudo ./deploy.sh update` | 拉代码 → 重建 → 迁移 → 滚动重启 |
+| `./deploy.sh status` | 容器状态 + 租户数 |
+| `./deploy.sh logs [api\|worker\|beat\|caddy]` | 跟踪日志 |
+| `sudo ./deploy.sh backup` | 备份数据库到 `backups/`（保留 30 份） |
+| `sudo ./deploy.sh restore <文件>` | 恢复备份 |
+
+架构：Caddy（自动 HTTPS + SPA 静态 + `/api` 反代）→ FastAPI → Postgres/Redis，
+Celery worker+beat 跑流水线与序列引擎。前端在镜像内构建，VPS 无需 Node。
+
 ## 本地开发
 
 ```bash

@@ -1,0 +1,68 @@
+# 生产编排：./deploy.sh 使用本文件（开发用 docker-compose.yml）
+services:
+  caddy:
+    build: ./frontend
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN: ${DOMAIN:-}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api]
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import httpx; httpx.get('http://localhost:8000/api/health').raise_for_status()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    build: ./backend
+    restart: unless-stopped
+    command: celery -A app.celery_app worker -Q discovery,sequence,mailbox,maintenance -l info --concurrency=4
+    env_file: .env
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  beat:
+    build: ./backend
+    restart: unless-stopped
+    command: celery -A app.celery_app beat -l info
+    env_file: .env
+    depends_on: [redis]
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: outreach
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run deploy.sh to generate .env}
+      POSTGRES_DB: outreach
+    volumes: ["pg_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U outreach -d outreach"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes: ["redis_data:/data"]
+
+volumes:
+  caddy_data:
+  caddy_config:
+  pg_data:
+  redis_data:

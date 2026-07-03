@@ -12,6 +12,7 @@ BEGIN
     'messages','suppression_entries','usage_counters','events'
   ] LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
+    EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', t);  -- 幂等：部署可重复执行
     EXECUTE format($f$
       CREATE POLICY tenant_isolation ON %I
       USING (tenant_id = current_setting('app.tenant_id', true)::uuid)

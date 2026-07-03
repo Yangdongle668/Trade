@@ -1,0 +1,13 @@
+# DOMAIN 为空时退化为 :80（用 IP 访问）；填域名则自动签发 HTTPS
+{$DOMAIN::80} {
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+	handle {
+		root * /srv/spa
+		try_files {path} {path}/index.html /index.html
+		file_server
+	}
+}
